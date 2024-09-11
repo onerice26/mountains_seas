@@ -5,20 +5,27 @@ const location = {
   latitude: 39.90923,
   accuracy: 100,
 };
-
-export const getMap = () => {
-  let map = null;
+export const initMap = () => {
   AMapLoader.load({
     key: "8b7a95d5ce8ebb2b39f6265e2966f621", // 申请好的Web端开发者Key，首次调用 load 时必填
     version: "2.0", // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-    plugins: ["AMap.Scale", "AMap.Geolocation", "AMap.ToolBar"], //需要使用的的插件列表，如比例尺'AMap.Scale'，支持添加多个如：['...','...']
+    plugins: ["AMap.Geolocation", "AMap.Polyline"], //需要使用的的插件列表，如比例尺'AMap.Scale'，支持添加多个如：['...','...']
   })
     .then((AMap) => {
+      window.AMap = AMap;
+      // 将 AMap 挂载到 window 对象上
       const geolocation = new AMap.Geolocation({
         enableHighAccuracy: true, // 高精度开启
-        radius: 10000,
-        extensions: "all",
+        timeout: 10000, //超过10秒后停止定位，默认：5s
+        position: "RB", //定位按钮的停靠位置
+        offset: [10, 20], //定位按钮与设置的停靠位置的偏移量，默认：[10, 20]
+        zoomToAccuracy: true, //定位成功后是否自动调整地图视野到定位点
       });
+      const map = new AMap.Map("container", {
+        resizeEnable: true,
+      });
+      window.myMap = map;
+      map.addControl(geolocation);
       geolocation.getCurrentPosition(function (status, result) {
         if (status == "complete") {
           onComplete(result);
@@ -27,9 +34,6 @@ export const getMap = () => {
         }
       });
       function onComplete(data) {
-        console.log("data是具体的定位信息", data);
-        console.log(data.position.lng);
-        console.log(data.position.lat);
         location.latitude = data.position.lat;
         location.longitude = data.position.lng;
         // onLoad(lng, lat) 从这里调用你的接口
@@ -51,17 +55,30 @@ export const getMap = () => {
             break;
         }
       }
-      map = new AMap.Map("container", {
-        // 设置地图容器id
-        viewMode: "3D", // 是否为3D地图模式
-        zoom: 13, // 初始化地图级别
-        layers: [new AMap.TileLayer.Satellite()],
-        center: [location.longitude, location.latitude], // 初始化地图中心点位置
-      });
-      map.addControl(geolocation);
     })
     .catch((e) => {
       console.log(e);
     });
-  return map;
+};
+
+export const initPolyline = (path) => {
+  //创建 Polyline 实例
+  var polyline = new window.AMap.Polyline({
+    path: path,
+    isOutline: true,
+    outlineColor: "#ffeeff",
+    borderWeight: 3,
+    strokeColor: "#3366FF",
+    strokeOpacity: 1,
+    strokeWeight: 6,
+    // 折线样式还支持 'dashed'
+    strokeStyle: "solid",
+    // strokeStyle是dashed时有效
+    strokeDasharray: [10, 5],
+    lineJoin: "round",
+    lineCap: "round",
+    zIndex: 50,
+  });
+  window.myMap.add(polyline);
+  return polyline;
 };
