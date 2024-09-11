@@ -1,4 +1,6 @@
 import AMapLoader from "@amap/amap-jsapi-loader";
+import { transformFromGCJToWGS } from "./gcj02towgs84"
+
 
 const location = {
   longitude: 116.397428,
@@ -6,6 +8,9 @@ const location = {
   accuracy: 100,
 };
 export const initMap = () => {
+  window._AMapSecurityConfig = {
+    securityJsCode: "ddb0bc10833cebc6a5700ece91404d7f",
+  };
   AMapLoader.load({
     key: "8b7a95d5ce8ebb2b39f6265e2966f621", // 申请好的Web端开发者Key，首次调用 load 时必填
     version: "2.0", // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
@@ -21,11 +26,6 @@ export const initMap = () => {
         offset: [10, 20], //定位按钮与设置的停靠位置的偏移量，默认：[10, 20]
         zoomToAccuracy: true, //定位成功后是否自动调整地图视野到定位点
       });
-      const map = new AMap.Map("container", {
-        resizeEnable: true,
-      });
-      window.myMap = map;
-      map.addControl(geolocation);
       geolocation.getCurrentPosition(function (status, result) {
         if (status == "complete") {
           onComplete(result);
@@ -33,10 +33,19 @@ export const initMap = () => {
           onError(result);
         }
       });
+      const map = new AMap.Map("container", {
+        resizeEnable: true,
+      });
+      window.myMap = map;
+      map.addControl(geolocation);
       function onComplete(data) {
-        location.latitude = data.position.lat;
-        location.longitude = data.position.lng;
-        // onLoad(lng, lat) 从这里调用你的接口
+        console.log("data", data)
+        const position = transformFromGCJToWGS(data.position.lat, data.position.lng);
+        location.latitude = position.latitude;
+        location.longitude = position.longitude;
+        location.accuracy = data.accuracy;
+        console.log("location", location)
+        map.setZoomAndCenter(15, [location.longitude, location.latitude]);
       }
       function onError(error) {
         // 定位出错
