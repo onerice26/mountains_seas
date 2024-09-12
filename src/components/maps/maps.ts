@@ -8,9 +8,9 @@ const location = {
   accuracy: 100,
 };
 export const initMap = () => {
-  // window._AMapSecurityConfig = {
-  //   securityJsCode: "ddb0bc10833cebc6a5700ece91404d7f",
-  // };
+  window._AMapSecurityConfig = {
+    securityJsCode: "ddb0bc10833cebc6a5700ece91404d7f",
+  };
   AMapLoader.load({
     key: "8b7a95d5ce8ebb2b39f6265e2966f621", // 申请好的Web端开发者Key，首次调用 load 时必填
     version: "2.0", // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
@@ -39,14 +39,14 @@ export const initMap = () => {
       });
       window.myMap = map;
       map.addControl(geolocation);
-      function onComplete(data) {
+      function onComplete(data: any) {
         console.log("data", data)
         const position = transformFromGCJToWGS(data.position.lat, data.position.lng);
         location.latitude = position.latitude;
         location.longitude = position.longitude;
         location.accuracy = data.accuracy;
         console.log("location", location)
-        map.setZoomAndCenter(15, [location.longitude, location.latitude]);
+        // map.setZoomAndCenter(15, [location.longitude, location.latitude]);
       }
       function onError(error) {
         // 定位出错

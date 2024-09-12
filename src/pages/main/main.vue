@@ -5,15 +5,17 @@ import { onMounted, ref } from "vue";
 let path = [];
 let tt = ref('');
 let polyline = null;
+let lastLat = 0;
+let lastLng = 0;
 // 更新位置函数
-function updatePosition(position) {
+const updatePosition = (position) => {
     var lat = position.coords.latitude;
     var lng = position.coords.longitude;
-    // console.log([lng, lat])
-    // var point = new window.AMap.LngLat(lng, lat);
-
-    // 更新地图中心
-    // map.setCenter(point);
+    if (lastLat === lat && lastLng === lng) {
+        return;
+    }
+    lastLat = lat;
+    lastLng = lng;
     tt.value = tt.value + lat + "," + lng + ";\n";
     console.log(tt.value)
     // 更新步行轨迹
@@ -26,17 +28,18 @@ function updatePosition(position) {
     }
 }
 // 错误处理
-function handleError(error) {
+const handleError = (error) => {
     console.error("位置获取失败：", error.message);
 }
 let nn = null | Number;
 
-function start() {
+const start = () => {
     // 监控位置变化
     nn = navigator.geolocation.watchPosition(updatePosition, handleError, {
         enableHighAccuracy: true
     });
-} function end() {
+}
+const end = () => {
     navigator.geolocation.clearWatch(nn)
 }
 onMounted(() => {
@@ -68,6 +71,7 @@ onMounted(() => {
     bottom: 1;
     z-index: 20;
 }
+
 .dd {
     position: absolute;
     right: 1;
